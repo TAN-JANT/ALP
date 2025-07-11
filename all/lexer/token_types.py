@@ -118,3 +118,116 @@ class FUNC_TOKEN:
         }
         """
         pass
+
+class LEFT_PAREN_TOKEN:
+    def __init__(self):
+        """a token to indicate a left parenthesis
+        (
+        """
+        pass
+
+class RIGHT_PAREN_TOKEN:
+    def __init__(self):
+        """a token to indicate a right parenthesis
+        )
+        """
+        pass
+
+class LEFT_BRACE_TOKEN:
+    def __init__(self):
+        """a token to indicate a left brace
+        {
+        """
+        pass
+
+class RIGHT_BRACE_TOKEN:
+    def __init__(self):
+        """a token to indicate a right brace
+        }
+        """
+        pass
+
+class COMMA_TOKEN:
+    def __init__(self):
+        """a token to indicate a comma
+        ,
+        """
+        pass
+
+class IF_TOKEN:
+    def __init__(self):
+        """Token for 'if' keyword"""
+        pass
+
+class ELIF_TOKEN:
+    def __init__(self):
+        """Token for 'elif' keyword"""
+        pass
+
+class ELSE_TOKEN:
+    def __init__(self):
+        """Token for 'else' keyword"""
+        pass
+
+class WHILE_TOKEN:
+    def __init__(self):
+        """Token for 'while' keyword"""
+        pass
+
+class RETURN_TOKEN:
+    def __init__(self):
+        """Token for 'return' keyword"""
+        pass
+
+class EQUAL_TOKEN:
+    def __init__(self):
+        """=="""
+        pass
+
+class NOT_EQUAL_TOKEN:
+    def __init__(self):
+        """!="""
+        pass
+
+class LESS_THAN_TOKEN:
+    def __init__(self):
+        """<"""
+        pass
+
+class GREATER_THAN_TOKEN:
+    def __init__(self):
+        """>"""
+        pass
+
+class LESS_EQUAL_TOKEN:
+    def __init__(self):
+        """<="""
+        pass
+
+class GREATER_EQUAL_TOKEN:
+    def __init__(self):
+        """>="""
+        pass
+
+class AND_TOKEN:
+    def __init__(self):
+        """&&"""
+        pass
+
+class OR_TOKEN:
+    def __init__(self):
+        """||"""
+        pass
+
+class NOT_TOKEN:
+    def __init__(self):
+        """!"""
+        pass
+
+class COLON_TOKEN:
+    def __init__(self):
+        """a token to indicate a colon
+        :
+        """
+        pass
+
