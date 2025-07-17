@@ -1,233 +1,137 @@
-# Token class definitions
+from typing import Any
 
-class INCLUDE_TOKEN:
-    def __init__(self, value: str):
-        """value is the path to the file to include
-        include "path/to/file.all"
-        """
+class TOKEN:
+    def __init__(self, t_type: str, line: int, column: int, pos: int, value: Any):
+        self.type = t_type
+        self.line = line
+        self.column = column
+        self.pos = pos
         self.value = value
 
-class TYPE_TOKEN:
-    def __init__(self, name: str):
-        """name is the name of the type
-        i8, i16, i32, i64, ptr i8, etc.
-        """
-        self.name = name
+    def __repr__(self) -> str:
+        return f"{self.type} {self.value} at line {self.line}, column {self.column}"
 
-class INTEGER_TOKEN:
-    def __init__(self, value: int):
-        """value is the integer value
-        42, 0, -1, etc.
-        """
-        self.value = value
+class DIRECTIVE_TOKEN(TOKEN):
+    def __init__(self, line: int, column: int, pos: int):
+        super().__init__("DIRECTIVE TOKEN", line, column, pos, "@")
 
-class HEX_TOKEN:
-    def __init__(self, value: str):
-        """value is the hexadecimal value
-        0x1A, 0xFF, etc.
-        """
-        self.value = value
+class INTEGER_TOKEN(TOKEN):
+    def __init__(self, value: int, line: int, column: int, pos: int):
+        super().__init__("INTEGER TOKEN", line, column, pos, value)
 
-class BINARY_TOKEN:
-    def __init__(self, value: str):
-        """value is the binary value
-        0b1010, 0b1111, etc.
-        """
-        self.value = value
+class HEX_TOKEN(TOKEN):
+    def __init__(self, value: int, line: int, column: int, pos: int):
+        super().__init__("HEX TOKEN", line, column, pos, value)
 
-class DIV_TOKEN:
-    def __init__(self):
-        """a token to indicate division operation
-        10 / 2
-        """
-        pass
+class BINARY_TOKEN(TOKEN):
+    def __init__(self, value: int, line: int, column: int, pos: int):
+        super().__init__("BINARY TOKEN", line, column, pos, value)
 
-class MUL_TOKEN:
-    def __init__(self):
-        """a token to indicate multiplication operation
-        10 * 2
-        """
-        pass
+class FLOAT_TOKEN(TOKEN):
+    def __init__(self, value: float, line: int, column: int, pos: int):
+        super().__init__("FLOAT TOKEN", line, column, pos, value)
 
-class ADD_TOKEN:
-    def __init__(self):
-        """a token to indicate addition operation
-        10 + 2
-        """
-        pass
+class STRING_TOKEN(TOKEN):
+    def __init__(self, value: str, line: int, column: int, pos: int):
+        super().__init__("STRING TOKEN", line, column, pos, value)
 
-class SUB_TOKEN:
-    def __init__(self):
-        """a token to indicate subtraction operation
-        10 - 2
-        """
-        pass
+class IDENTIFIER_TOKEN(TOKEN):
+    def __init__(self, value: str, line: int, column: int, pos: int):
+        super().__init__("IDENTIFIER TOKEN", line, column, pos, value)
 
-class POW_TOKEN:
-    def __init__(self):
-        """a token to indicate exponentiation operation
-        2 ** 3
-        """
-        pass
+class NEWLINE_TOKEN(TOKEN):
+    def __init__(self, line: int, column: int, pos: int):
+        super().__init__("NEWLINE TOKEN", line, column, pos, None)
 
-class ASSIGN_TOKEN:
-    def __init__(self):
-        """a token to indicate assignment operation
-        x = 10
-        """
-        pass
+# Symbol tokens
+class DIV_TOKEN(TOKEN):
+    def __init__(self, line: int, column: int, pos: int):
+        super().__init__("DIV TOKEN", line, column, pos, "/")
 
-class IDENTIFIER_TOKEN:
-    def __init__(self, value: str):
-        """value is the identifier name
-        main, person, print, etc.
-        """
-        self.value = value
+class ASTERISK_TOKEN(TOKEN):
+    def __init__(self, line: int, column: int, pos: int):
+        super().__init__("ASTERISK TOKEN", line, column, pos, "*")
 
-class STRING_TOKEN:
-    def __init__(self, value: str):
-        '''value is the string content
-        """Hello, World!"""
-        '''
-        self.value = value
+class POW_TOKEN(TOKEN):
+    def __init__(self, line: int, column: int, pos: int):
+        super().__init__("POW TOKEN", line, column, pos, "**")
 
-class EXPORT_TOKEN:
-    def __init__(self):
-        """a token to indicate that the function is exported
-        export func i8 main(){
-            return 0;
-        }
-        """
-        pass
+class MOD_TOKEN(TOKEN):
+    def __init__(self, line: int, column: int, pos: int):
+        super().__init__("MOD TOKEN", line, column, pos, "%")
 
-class STRUCT_TOKEN:
-    def __init__(self):
-        """struct definition token
-        struct person {
-            i8 age
-            ptr i8 name
-        }
-        """
-        pass
+class ADD_TOKEN(TOKEN):
+    def __init__(self, line: int, column: int, pos: int):
+        super().__init__("ADD TOKEN", line, column, pos, "+")
 
-class FUNC_TOKEN:
-    def __init__(self):
-        """function definition token
-        func i8 main(){
-            return 0;
-        }
-        """
-        pass
+class SUB_TOKEN(TOKEN):
+    def __init__(self, line: int, column: int, pos: int):
+        super().__init__("SUB TOKEN", line, column, pos, "-")
 
-class LEFT_PAREN_TOKEN:
-    def __init__(self):
-        """a token to indicate a left parenthesis
-        (
-        """
-        pass
+class LEFT_PAREN_TOKEN(TOKEN):
+    def __init__(self, line: int, column: int, pos: int):
+        super().__init__("LEFT PAREN TOKEN", line, column, pos, "(")
 
-class RIGHT_PAREN_TOKEN:
-    def __init__(self):
-        """a token to indicate a right parenthesis
-        )
-        """
-        pass
+class RIGHT_PAREN_TOKEN(TOKEN):
+    def __init__(self, line: int, column: int, pos: int):
+        super().__init__("RIGHT PAREN TOKEN", line, column, pos, ")")
 
-class LEFT_BRACE_TOKEN:
-    def __init__(self):
-        """a token to indicate a left brace
-        {
-        """
-        pass
+class LEFT_SQUARE_PAREN_TOKEN(TOKEN):
+    def __init__(self, line: int, column: int, pos: int):
+        super().__init__("LEFT SQUARE PAREN TOKEN", line, column, pos, "[")
 
-class RIGHT_BRACE_TOKEN:
-    def __init__(self):
-        """a token to indicate a right brace
-        }
-        """
-        pass
+class RIGHT_SQUARE_PAREN_TOKEN(TOKEN):
+    def __init__(self, line: int, column: int, pos: int):
+        super().__init__("RIGHT SQUARE PAREN TOKEN", line, column, pos, "]")
 
-class COMMA_TOKEN:
-    def __init__(self):
-        """a token to indicate a comma
-        ,
-        """
-        pass
+class LEFT_BRACE_TOKEN(TOKEN):
+    def __init__(self, line: int, column: int, pos: int):
+        super().__init__("LEFT BRACE TOKEN", line, column, pos, "{")
 
-class IF_TOKEN:
-    def __init__(self):
-        """Token for 'if' keyword"""
-        pass
+class RIGHT_BRACE_TOKEN(TOKEN):
+    def __init__(self, line: int, column: int, pos: int):
+        super().__init__("RIGHT BRACE TOKEN", line, column, pos, "}")
 
-class ELIF_TOKEN:
-    def __init__(self):
-        """Token for 'elif' keyword"""
-        pass
+class COMMA_TOKEN(TOKEN):
+    def __init__(self, line: int, column: int, pos: int):
+        super().__init__("COMMA TOKEN", line, column, pos, ",")
 
-class ELSE_TOKEN:
-    def __init__(self):
-        """Token for 'else' keyword"""
-        pass
+class EQUAL_TOKEN(TOKEN):
+    def __init__(self, line: int, column: int, pos: int):
+        super().__init__("EQUAL TOKEN", line, column, pos, "=")
+class LESS_TOKEN(TOKEN):
+    def __init__(self, line: int, column: int, pos: int):
+        super().__init__("LESS TOKEN", line, column, pos, "<")
 
-class WHILE_TOKEN:
-    def __init__(self):
-        """Token for 'while' keyword"""
-        pass
+class GREATER_TOKEN(TOKEN):
+    def __init__(self, line: int, column: int, pos: int):
+        super().__init__("GREATER TOKEN", line, column, pos, ">")
 
-class RETURN_TOKEN:
-    def __init__(self):
-        """Token for 'return' keyword"""
-        pass
+class AND_TOKEN(TOKEN):
+    def __init__(self, line: int, column: int, pos: int):
+        super().__init__("AND TOKEN", line, column, pos, "&")
 
-class EQUAL_TOKEN:
-    def __init__(self):
-        """=="""
-        pass
+class PIPE_TOKEN(TOKEN):
+    def __init__(self, line: int, column: int, pos: int):
+        super().__init__("PIPE TOKEN", line, column, pos, "|")
 
-class NOT_EQUAL_TOKEN:
-    def __init__(self):
-        """!="""
-        pass
+class NOT_TOKEN(TOKEN):
+    def __init__(self, line: int, column: int, pos: int):
+        super().__init__("NOT TOKEN", line, column, pos, "!")
 
-class LESS_THAN_TOKEN:
-    def __init__(self):
-        """<"""
-        pass
+class COLON_TOKEN(TOKEN):
+    def __init__(self, line: int, column: int, pos: int):
+        super().__init__("COLON TOKEN", line, column, pos, ":")
 
-class GREATER_THAN_TOKEN:
-    def __init__(self):
-        """>"""
-        pass
+class DOT_TOKEN(TOKEN):
+    def __init__(self, line: int, column: int, pos: int):
+        super().__init__("DOT TOKEN", line, column, pos, ".")
 
-class LESS_EQUAL_TOKEN:
-    def __init__(self):
-        """<="""
-        pass
+class QUESTION_MARK_TOKEN(TOKEN):
+    def __init__(self, line: int, column: int, pos: int):
+        super().__init__("QUESTION MARK TOKEN", line, column, pos, "?")
+        
+         
 
-class GREATER_EQUAL_TOKEN:
-    def __init__(self):
-        """>="""
-        pass
-
-class AND_TOKEN:
-    def __init__(self):
-        """&&"""
-        pass
-
-class OR_TOKEN:
-    def __init__(self):
-        """||"""
-        pass
-
-class NOT_TOKEN:
-    def __init__(self):
-        """!"""
-        pass
-
-class COLON_TOKEN:
-    def __init__(self):
-        """a token to indicate a colon
-        :
-        """
-        pass
-
+        
+        
