@@ -1,34 +1,10 @@
-
+# type: ignore
 from . import errors
-from . import token_types 
+from ..common import token_types 
 
 """
 Lexer class for ALP language.
 Syntax information is avaliable at below
-"""
-
-"""
-    @include "path/to/file.all"
-    @struct person {
-        @i8 age
-        @i8 *name
-    }
-
-    @export @func @i8 main(){
-        @return 0
-    }
-
-    @func @void print(@i8 *string, @i16 *len){
-        @ASM {
-            @mov %rax,%rsi
-            @mov %rsi,%rdx
-            @mov %rdi,1
-            @mov %rdx,%rax
-            @mov %rax,1
-            @syscall
-        }
-        @return
-    }
 """
 
 
@@ -37,7 +13,15 @@ class Lexer:
         pass
 
     def lex_src(self, source: str):
-        self.source = source
+        with open(source, "r") as f:
+            self.source = f.read()
+        _ = "/".join(source.split("/")[:-1])
+        if _ != "":
+            _ += "/"
+        self.info = {
+            "working_directory": _,
+            "file_name": source.split("/")[-1],
+        }
         self.position = 0
         self.line = 1
         self.column = 0
@@ -77,7 +61,7 @@ class Lexer:
 
     def __lex(self):
         """Lexes the source code and returns a list of tokens"""
-        tokens = []
+        tokens = [self.info]
         special_characters = r"<>!^+-*/%=.:,?&|@(){}[]"
         special_character_classes = [
                     token_types.LESS_TOKEN,
@@ -105,6 +89,7 @@ class Lexer:
                     token_types.RIGHT_SQUARE_PAREN_TOKEN,
                 ]
         while True:
+            
             if self.current_char is None:
                 break
             prev_line = self.line
@@ -180,7 +165,7 @@ class Lexer:
                     while self.current_char is not None and self.current_char.isdigit():
                         self.advance()
                     
-                    tokens.append(token_types.HEX_TOKEN(int(self.source[start_pos:self.position],base=16),start_line,start_column,start_pos))
+                    tokens.append(token_types.HEX_TOKEN(self.source[start_pos:self.position],start_line,start_column,start_pos)) 
                     continue
                 
                 if self.current_char == "0" and self.peek() == "b":
@@ -192,7 +177,7 @@ class Lexer:
                     while self.current_char is not None and self.current_char.isdigit():
                         self.advance()
                     
-                    tokens.append(token_types.BINARY_TOKEN(int(self.source[start_pos:self.position],base=2),start_line,start_column,start_pos))
+                    tokens.append(token_types.BINARY_TOKEN(self.source[start_pos:self.position],start_line,start_column,start_pos)) 
                     continue
 
                 start_pos = self.position
@@ -201,7 +186,7 @@ class Lexer:
                 while self.current_char is not None and self.current_char.isdigit():
                     self.advance()
                 
-                tokens.append(token_types.INTEGER_TOKEN(int(self.source[start_pos:self.position]),start_line,start_column,start_pos))
+                tokens.append(token_types.INTEGER_TOKEN(self.source[start_pos:self.position],start_line,start_column,start_pos))
                 continue
 
             if self.current_char.isalpha() or self.current_char == "_":

@@ -1,0 +1,28 @@
+    include """test2.all"""
+    struct person {
+        i8 age
+        i8 * name
+    }
+
+    export func i8 main(){
+        i8 a = 8
+        i8 b = 9
+        i8 c = a + b
+        i8 d = a * b * (c + a + b)
+        float x = 86.002
+        struct(person) person1 = {16,cast(i8 *,"""Eymen""")}
+        print(person1.name,5)
+        return 0
+    }
+
+    func void print(i8 * string, i16 len){
+        ASM {
+            mov %rax,%rsi
+            mov %rsi,%rdx
+            mov %rdi,1
+            mov %rdx,%rax
+            mov %rax,1
+            syscall
+        }
+        return
+    }

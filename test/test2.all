@@ -1,0 +1,4 @@
+include """test1.all"""
+func i8 add(i8 a , i8 b){
+    return a + b
+}

@@ -16,15 +16,15 @@ class DIRECTIVE_TOKEN(TOKEN):
         super().__init__("DIRECTIVE TOKEN", line, column, pos, "@")
 
 class INTEGER_TOKEN(TOKEN):
-    def __init__(self, value: int, line: int, column: int, pos: int):
+    def __init__(self, value: str, line: int, column: int, pos: int):
         super().__init__("INTEGER TOKEN", line, column, pos, value)
 
 class HEX_TOKEN(TOKEN):
-    def __init__(self, value: int, line: int, column: int, pos: int):
+    def __init__(self, value: str, line: int, column: int, pos: int):
         super().__init__("HEX TOKEN", line, column, pos, value)
 
 class BINARY_TOKEN(TOKEN):
-    def __init__(self, value: int, line: int, column: int, pos: int):
+    def __init__(self, value: str, line: int, column: int, pos: int):
         super().__init__("BINARY TOKEN", line, column, pos, value)
 
 class FLOAT_TOKEN(TOKEN):
@@ -130,8 +130,6 @@ class DOT_TOKEN(TOKEN):
 class QUESTION_MARK_TOKEN(TOKEN):
     def __init__(self, line: int, column: int, pos: int):
         super().__init__("QUESTION MARK TOKEN", line, column, pos, "?")
-        
-         
+          
 
-        
-        
+
