@@ -1,8 +1,12 @@
     include """test2.all"""
+
+  
+
     struct person {
         i8 age
         i8 * name
     }
+
 
     export func i8 main(){
         i8 a = 8
@@ -10,9 +14,10 @@
         i8 c = a + b
         i8 d = a * b * (c + a + b)
         float x = 86.002
-        struct(person) person1 = {16,cast(i8 *,"""Eymen""")}
+        person ** person1 = {16,addr("""Eymen""")}
+        array<i8,3> arr = {2,3,8}
         print(person1.name,5)
-        return 0
+        return 0 
     }
 
     func void print(i8 * string, i16 len){

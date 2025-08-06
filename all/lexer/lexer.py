@@ -7,7 +7,6 @@ Lexer class for ALP language.
 Syntax information is avaliable at below
 """
 
-
 class Lexer:
     def __init__(self):
         pass
@@ -95,7 +94,7 @@ class Lexer:
             prev_line = self.line
             self.skip_whitespace()
             if self.line > prev_line:
-                tokens.append(token_types.NEWLINE_TOKEN(prev_line, self.column, self.position))
+                tokens.append(token_types.NEWLINE_TOKEN(prev_line, self.column, self.position, self.info["working_directory"] + self.info["file_name"]))
             if self.current_char is None:
                 break
             if self.current_char == "/":  # Comments will be ignored at tokenization
@@ -114,7 +113,7 @@ class Lexer:
                 
 
             if self.current_char == '"' and self.peek(size=2) == '""':#Double quoted str
-                # Handle single-quoted string literals
+                # Handle double-quoted string literals
                 start_pos = self.position
                 start_line = self.line
                 start_column = self.column
@@ -124,10 +123,10 @@ class Lexer:
                         self.advance()
                     self.advance()
                 if self.current_char == '"' and self.peek(size=2) == '""':
-                    tokens.append(token_types.STRING_TOKEN(self.source[start_pos + 3 : self.position],start_line,start_column,start_pos))
+                    tokens.append(token_types.STRING_TOKEN(self.source[start_pos + 3 : self.position],start_line,start_column,start_pos, self.info["working_directory"] + self.info["file_name"]))
                     self.advance(3)
                 else:
-                    raise errors.Unterminated_String_Error(start_line, start_column, self.line, self.column) # start line column and end line column
+                    raise errors.Unterminated_String_Error(start_line, start_column, self.line, self.column, self.info["working_directory"] + self.info["file_name"]) # start line column and end line column
                 
                 continue
             
@@ -142,16 +141,16 @@ class Lexer:
                         self.advance()
                     self.advance()
                 if self.current_char == "'" and self.peek(size=2) == "''":
-                    tokens.append(token_types.STRING_TOKEN(self.source[start_pos + 3 : self.position],start_line,start_column,start_pos))
+                    tokens.append(token_types.STRING_TOKEN(self.source[start_pos + 3 : self.position],start_line,start_column,start_pos, self.info["working_directory"] + self.info["file_name"]))
                     self.advance(3)
                 else:
-                    raise errors.Unterminated_String_Error(start_line, start_column, self.line, self.column) # start line column and end line column
+                    raise errors.Unterminated_String_Error(start_line, start_column, self.line, self.column, self.info["working_directory"] + self.info["file_name"]) # start line column and end line column
                 
                 continue
                 
             
             if self.current_char in special_characters:#Special characters
-                tokens.append(special_character_classes[special_characters.index(self.current_char)](self.line,self.column,self.position))
+                tokens.append(special_character_classes[special_characters.index(self.current_char)](self.line,self.column,self.position, self.info["working_directory"] + self.info["file_name"]))
                 self.advance()
                 continue
             
@@ -165,7 +164,7 @@ class Lexer:
                     while self.current_char is not None and self.current_char.isdigit():
                         self.advance()
                     
-                    tokens.append(token_types.HEX_TOKEN(self.source[start_pos:self.position],start_line,start_column,start_pos)) 
+                    tokens.append(token_types.HEX_TOKEN(self.source[start_pos:self.position],start_line,start_column,start_pos, self.info["working_directory"] + self.info["file_name"])) 
                     continue
                 
                 if self.current_char == "0" and self.peek() == "b":
@@ -177,7 +176,7 @@ class Lexer:
                     while self.current_char is not None and self.current_char.isdigit():
                         self.advance()
                     
-                    tokens.append(token_types.BINARY_TOKEN(self.source[start_pos:self.position],start_line,start_column,start_pos)) 
+                    tokens.append(token_types.BINARY_TOKEN(self.source[start_pos:self.position],start_line,start_column,start_pos, self.info["working_directory"] + self.info["file_name"])) 
                     continue
 
                 start_pos = self.position
@@ -186,7 +185,7 @@ class Lexer:
                 while self.current_char is not None and self.current_char.isdigit():
                     self.advance()
                 
-                tokens.append(token_types.INTEGER_TOKEN(self.source[start_pos:self.position],start_line,start_column,start_pos))
+                tokens.append(token_types.INTEGER_TOKEN(self.source[start_pos:self.position],start_line,start_column,start_pos, self.info["working_directory"] + self.info["file_name"]))
                 continue
 
             if self.current_char.isalpha() or self.current_char == "_":
@@ -198,6 +197,6 @@ class Lexer:
                                                      or self.current_char == "_" 
                                                      or self.current_char.isdigit()):
                     self.advance()
-                tokens.append(token_types.IDENTIFIER_TOKEN(self.source[start_pos:self.position],start_line,start_column,start_pos))
+                tokens.append(token_types.IDENTIFIER_TOKEN(self.source[start_pos:self.position],start_line,start_column,start_pos, self.info["working_directory"] + self.info["file_name"]))
                     
         return tokens
