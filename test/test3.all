@@ -1,0 +1,23 @@
+extern func i8 main(){
+
+    i8 i = 0
+
+    if (i != 0) {
+        i = 100
+        i16 w = 4834
+    }
+    elif(i == 0) {
+        i = 200
+    }
+    else {
+
+        if (1){
+            i = 8
+        }
+        else {
+            i = 9
+        }
+
+    }
+
+}

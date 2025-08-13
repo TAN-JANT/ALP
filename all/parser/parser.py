@@ -1,4 +1,5 @@
 # type: ignore
+from turtle import position
 from all.common import statements
 from ..common import token_types
 from . import errors
@@ -30,6 +31,7 @@ class Parser:
         self.__struct_cycle()
         self.parsed_data = self.__parse_functions(self.parsed_data.copy())
         self.parsed_data = self.__parse_assembly_block(self.parsed_data.copy())
+        self.parsed_data = self.__parse_if_else_elif(self.parsed_data.copy(), in_func=False)
 
         return self.parsed_data
 
@@ -380,13 +382,14 @@ class Parser:
                 while position < len(src) and src[position]["type"] == token_types.TT_NEWLINE_TOKEN:
                     position += 1
                 func_body = src[position]
-                #print(func_body)
                 if func_body["type"] != statements.STMT_BRACE and func_body["type"] != token_types.TT_SEMI_TOKEN:
                     raise errors.Unparseable_function_Error(token["line"], token["column"], token["file"])
 
                 if func_body["type"] != token_types.TT_SEMI_TOKEN:
+                    func_body = func_body["body"]
                     body.append({"type": statements.STMT_FUNCTION, "file": token["file"], "line": token["line"], "column": token["column"], "name": func_name, "return_type": return_type, "params": func_params, "body": func_body, "extern": extern})
-                    #print(body[-1]["body"])
+
+
                 self.functions[func_name] = {"return_type": return_type, "func_params": func_params}
 
                 extern = False
@@ -409,65 +412,92 @@ class Parser:
             token = src[position]
             if token["type"]== statements.STMT_FUNCTION:
                 _ = 0
-                if "body" in token and isinstance(token["body"], dict):
-                    
-                    while _ < len(token["body"]["body"]):
+                if "body" in token and isinstance(token["body"], list):
+                    while _ < len(token["body"]):
 
-                        print(token["body"]["body"][_])
-                        if token["body"]["body"][_]["type"] == token_types.TT_IDENTIFIER_TOKEN and token["body"]["body"][_]["value"] == "ASM":
-                            token["body"]["body"].pop(_)
-                            if token["body"]["body"][_]["type"] == statements.STMT_BRACE:
-                                token["body"]["body"][_] = {"type": statements.STMT_ASSEMBLY_BLOCK, "file": token["body"]["body"][_]["file"], "line": token["body"]["body"][_]["line"], "column": token["body"]["body"][_]["column"], "body": token["body"]["body"][_]}
+                        if token["body"][_]["type"] == token_types.TT_IDENTIFIER_TOKEN and token["body"][_]["value"] == "ASM":
+                            token["body"].pop(_)
+                            if token["body"][_]["type"] == statements.STMT_BRACE:
+                                token["body"][_] = {"type": statements.STMT_ASSEMBLY_BLOCK, "file": token["body"][_]["file"], "line": token["body"][_]["line"], "column": token["body"][_]["column"], "body": token["body"][_]}
                         _ += 1
                 
             position += 1
         return src
 
-    def __parse_if_else_elif(self, src:list):
+    def __parse_if_else_elif(self, src:list, in_func: bool = False):
         position = 0
         current_if = None
         while position < len(src):
             token = src[position]
             if token["type"] == token_types.TT_IDENTIFIER_TOKEN and token["value"] == "if":
+                if not in_func:
+                    raise errors.Unparseable_if_block_Error(token["line"], token["column"], token["file"])
+
                 src.pop(position)
                 if position >= len(src) or src[position]["type"] != statements.STMT_ROUND_PAREN:
                     raise errors.Unparseable_if_block_Error(token["line"], token["column"], token["file"])
-                condition = src.pop(position)
+                condition = src.pop(position)["body"]
                 if position >= len(src) or src[position]["type"] != statements.STMT_BRACE:
                     raise errors.Unparseable_if_block_Error(token["line"], token["column"], token["file"])
-                body = src.pop(position)
+                body = self.__parse_if_else_elif(src.pop(position)["body"], in_func=in_func)
                 current_if =  {"type": statements.STMT_IF_BLOCK, "condition": condition, "body": body, "else" : None}
                 src.insert(position, current_if)
                 continue
             
             if token["type"] == token_types.TT_IDENTIFIER_TOKEN and token["value"] == "elif":
+                if not in_func:
+                    raise errors.Unparseable_if_block_Error(token["line"], token["column"], token["file"])
+                
                 src.pop(position)
                 if position >= len(src) or src[position]["type"] != statements.STMT_ROUND_PAREN:
                     raise errors.Unparseable_if_block_Error(token["line"], token["column"], token["file"])
-                condition = src.pop(position)
+                condition = src.pop(position)["body"]
                 if position >= len(src) or src[position]["type"] != statements.STMT_BRACE:
                     raise errors.Unparseable_if_block_Error(token["line"], token["column"], token["file"])
-                body = src.pop(position)
+                body = self.__parse_if_else_elif(src.pop(position)["body"], in_func=in_func)
                 if current_if is None:
                     raise errors.Unparseable_if_block_Error(token["line"], token["column"], token["file"])
                 current_if["else"] = {"type": statements.STMT_ELIF_BLOCK, "condition": condition, "body": body, "else" : None}
                 current_if = current_if["else"]
-                src.insert(position, current_if)
                 continue
 
             if token["type"] == token_types.TT_IDENTIFIER_TOKEN and token["value"] == "else":
+                if not in_func:
+                    raise errors.Unparseable_if_block_Error(token["line"], token["column"], token["file"])
+                
                 src.pop(position)
                 if position >= len(src) or src[position]["type"] != statements.STMT_BRACE:
                     raise errors.Unparseable_if_block_Error(token["line"], token["column"], token["file"])
-                body = src.pop(position)
+                body = self.__parse_if_else_elif(src.pop(position)["body"], in_func=in_func)
                 if current_if is None:
                     raise errors.Unparseable_if_block_Error(token["line"], token["column"], token["file"])
                 current_if["else"] = {"type": statements.STMT_ELSE_BLOCK, "body": body}
-                src.insert(position, current_if["else"])
                 current_if = None
+                
                 continue
 
+            if token["type"] == statements.STMT_FUNCTION:
+                if in_func:
+                    raise errors.Unparseable_function_Error(token["line"], token["column"], token["file"])
+                token["body"] = self.__parse_if_else_elif(token["body"], in_func=True)
+                position += 1
+                continue
+            
+            if token["type"] == statements.STMT_BRACE:
+                if not in_func:
+                    raise errors.Unparseable_if_block_Error(token["line"], token["column"], token["file"])
+                token["body"] = self.__parse_if_else_elif(token["body"].copy(), in_func=in_func)
+                position += 1
+                continue
+            position += 1
+
         return src
+
+    def __parse_while_for(self, src:list, in_func: bool = False):
+        position = 0
+        while position < len(src):
+            token = src[position]
+            pass
 
     def __create_ast(self):
         pass
