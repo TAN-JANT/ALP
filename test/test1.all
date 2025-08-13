@@ -8,8 +8,13 @@
     }
 
 
-    export func i8 main(){
-        i8 a = 8
+    extern func i8 main(){
+        i8 a = 8    /*
+        
+        
+        the king
+        
+        */
         i8 b = 9
         i8 c = a + b
         i8 d = a * b * (c + a + b)

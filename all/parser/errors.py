@@ -66,3 +66,30 @@ class Struct_Cycle_Error(Exception):
 
     def __str__(self):
         return f"Struct cycle detected at File {self.file}, line {self.line}, column {self.column}"
+
+class Unparseable_function_Error(Exception):
+    def __init__(self, line, column, file="<unknown>"):
+        self.line = line
+        self.column = column
+        self.file = file
+
+    def __str__(self):
+        return f"Unparseable function at File {self.file}, line {self.line}, column {self.column}"
+
+class Unparseable_comment_Error(Exception):
+    def __init__(self, line, column, file="<unknown>"):
+        self.line = line
+        self.column = column
+        self.file = file
+
+    def __str__(self):
+        return f"Unparseable comment at File {self.file}, line {self.line}, column {self.column}"
+
+class Unparseable_if_block_Error(Exception):
+    def __init__(self, line, column, file="<unknown>"):
+        self.line = line
+        self.column = column
+        self.file = file
+
+    def __str__(self):
+        return f"Unparseable if block at File {self.file}, line {self.line}, column {self.column}"
