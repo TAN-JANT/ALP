@@ -1,5 +1,5 @@
     include """test2.all"""
-
+    
   
 
     struct person {
@@ -21,6 +21,10 @@
         float x = 86.002
         person ** person1 = {16,addr("""Eymen""")}
         array<i8,3> arr = {2,3,8}
+        if (b == 8) {}
+        else {}
+        do while (0) {}
+        while (0) {}
         print(person1.name,5)
         return 0 
     }

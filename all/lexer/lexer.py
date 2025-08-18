@@ -59,7 +59,7 @@ class Lexer:
             "<": token_types.TT_LESS_TOKEN,
             ">": token_types.TT_GREATER_TOKEN,
             "!": token_types.TT_NOT_TOKEN,
-            "^": token_types.TT_POW_TOKEN,
+            "^": token_types.TT_XOR_TOKEN,
             "+": token_types.TT_ADD_TOKEN,
             "-": token_types.TT_SUB_TOKEN,
             "*": token_types.TT_ASTERISK_TOKEN,
@@ -80,6 +80,7 @@ class Lexer:
             "}": token_types.TT_RIGHT_BRACE_TOKEN,
             "[": token_types.TT_LEFT_SQUARE_PAREN_TOKEN,
             "]": token_types.TT_RIGHT_SQUARE_PAREN_TOKEN,
+            "~": token_types.TT_TILDE_TOKEN
         }
 
         while True:
