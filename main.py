@@ -1,10 +1,9 @@
-from all.lexer.lexer import Lexer
-from all.parser.parser import Parser
+from all.frontend import Lexer , Parser
 from json import dumps
 from colorama import Fore
 from sys import argv
-from numba import njit
 from rich import pretty
+
 def main():
     file = argv[1]
     

@@ -19,7 +19,7 @@
         i8 c = a + b
         i8 d = a * b * (c + a + b)
         float x = 86.002
-        person ** person1 = {16,addr("""Eymen""")}
+        person ** person1 = {16,@addr("""Eymen""")}
         array<i8,3> arr = {2,3,8}
         if (b == 8) {}
         else {}

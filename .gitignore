@@ -1,0 +1,21 @@
+# Derleyici çıktıları / parse dosyaları
+parsed.json
+tokens.json
+*.pyc
+__pycache__/
+
+# Geçici / cache dosyaları
+*.tmp
+*.log
+
+# IDE / editör ayarları
+.vscode/
+.idea/
+
+# Sistem dosyaları
+.DS_Store
+Thumbs.db
+
+# Python venv
+Include/
+Scripts/
