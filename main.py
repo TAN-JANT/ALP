@@ -6,7 +6,7 @@ from rich import pretty
 
 def main():
     file = argv[1]
-    
+
     lexer = Lexer()
     tokens = lexer.lex_src(file)
     pretty.pprint(tokens)

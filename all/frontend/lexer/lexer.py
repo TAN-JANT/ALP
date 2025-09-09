@@ -73,7 +73,6 @@ class Lexer:
             "?": token_types.TT_QUESTION_MARK_TOKEN,
             "&": token_types.TT_AND_TOKEN,
             "|": token_types.TT_PIPE_TOKEN,
-            "@": token_types.TT_DIRECTIVE_TOKEN,
             "(": token_types.TT_LEFT_PAREN_TOKEN,
             ")": token_types.TT_RIGHT_PAREN_TOKEN,
             "{": token_types.TT_LEFT_BRACE_TOKEN,
@@ -252,7 +251,7 @@ class Lexer:
                 continue
 
                 # Identifiers
-            if self.current_char.isalpha() or self.current_char == "_":
+            if self.current_char.isalpha() or self.current_char == "_" or self.current_char == "@":
                 start_pos = self.position
                 start_line = self.line
                 start_column = self.column

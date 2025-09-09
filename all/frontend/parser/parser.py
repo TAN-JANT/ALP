@@ -1073,56 +1073,78 @@ class Parser:
         return body
 
     def __parse_expr(self, src: list[dict]):
-        position = 0
-
-
-
-        while position < len(src):
-            token = src[position]
-            
-            token["binding"] = [0,0]
-
-            _ = parser_conf.CONF_BINDING_NUMBER.get(token["type"],None) 
+        # İlk geçiş: binding değerlerini ata ve recursive parse yap
+        for token in src:
+            token["binding"] = [0, 0]
+            _ = parser_conf.CONF_BINDING_NUMBER.get(token["type"], None)
             if _ is not None:
-                token["binding"][0] = _[1] 
-                token["binding"][1] = _[2]
+                token["binding"][0] = _[1]  # left binding
+                token["binding"][1] = _[2]  # right binding
+                token["binded_left"] = None
+                token["binded_right"] = None
 
-            if "condition" in token.keys():
+            if "condition" in token:
                 token["condition"] = self.__parse_expr(token["condition"])
-
-            if "body" in token.keys() and not (
-                token["type"] in [statements.STMT_STRUCT]
-            ):
+            if "body" in token and token["type"] not in [statements.STMT_STRUCT, statements.STMT_ASSEMBLY_BLOCK]:
                 token["body"] = self.__parse_expr(token["body"])
-            
 
-            position += 1
+        # Binding önceliğine göre bağlama
+        while True:
+            trigger = False
+            right   = None
+            token   = None
+            left    = None
+            pos     = 0
+            while True:
+                right = src[pos] if pos < len(src) else None 
 
-        position = 0
-        token = None
-        left = None
-        right = None
-        while position < len(src):
-            right = src[position]
-            
-            if token is not None:
-                if token["binding"] == [0,0]:
-                    pass
+                if token is not None and token["binding"] == [0,0]:
+                    left_p = 0 if left is None else left["binding"][1]
+                    right_p = 0 if right is None else right["binding"][0]
+                    if left_p == 0 and right_p == 0:
+                        pos += 1
+                        left = token
+                        token = right
+                        continue
+                    if right_p > left_p:
+                        right["binded_left"] = token
+                        right["binding"][0] = 0
+                        #src[pos] = right
+
+                        src.pop(pos -1)
+                        token = None
+                        left = right
+                        pos += 1
+                        trigger = True
+                        continue
+                    if left is not None:
+                        left["binded_right"] = token
+                        left["binding"][1] = 0
+                        #src[pos-2] = left
+
+                        src.pop(pos-1)
+                        token = None
+                        left = right
+                        pos += 1
+                        trigger = True
+                        continue
+                    
+                    
+                    
+                if right is None and left is None and token is None:
+                    break
                 
-                if "condition" in token.keys():
-                    token["condition"] = self.__parse_expr(token["condition"])
+                left = token
+                token = right
+                pos += 1
 
-                if "body" in token.keys() and not (
-                    token["type"] in [statements.STMT_STRUCT]
-                ):
-                    token["body"] = self.__parse_expr(token["body"])
-            
 
-            position += 1
-            left = token
-            token= right 
-            
+            if not trigger:
+                break
         return src
+
+
+
 
     def __create_ast(self):
         pass
