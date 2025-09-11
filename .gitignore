@@ -19,3 +19,6 @@ Thumbs.db
 # Python venv
 Include/
 Scripts/
+
+pyvenv.cfg
+Lib/

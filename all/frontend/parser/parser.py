@@ -40,6 +40,7 @@ class Parser:
             self.parsed_data.copy(), in_func=False
         )
         self.parsed_data = self.__combine_operators(self.parsed_data.copy())
+        self.parsed_data = self.__parse_declaration(self.parsed_data.copy())
         self.parsed_data = self.__parse_expr(self.parsed_data.copy())
         return self.parsed_data
 
@@ -185,7 +186,7 @@ class Parser:
             body.append(token)
 
         return [position, body]
-
+ 
     def __parse_struct(self, src: list[dict], global_scope=True):
         position = 0
         body = []
@@ -308,7 +309,7 @@ class Parser:
 
     def __parse_types(self, src: list[dict], position=0, type_list=None):
         if type_list is None:
-            type_list = ["i8", "i16", "i32", "i64", "float", "double", "array", "void"]
+            type_list = ["i8", "i16", "i32", "i64","u8", "u16", "u32", "u64", "float", "double", "array", "void"]
 
         body = []
 
@@ -1078,8 +1079,8 @@ class Parser:
             token["binding"] = [0, 0]
             _ = parser_conf.CONF_BINDING_NUMBER.get(token["type"], None)
             if _ is not None:
-                token["binding"][0] = _[1]  # left binding
-                token["binding"][1] = _[2]  # right binding
+                token["binding"][0] = _[0]  # left binding
+                token["binding"][1] = _[1]  # right binding
                 token["binded_left"] = None
                 token["binded_right"] = None
 
@@ -1138,14 +1139,72 @@ class Parser:
                 token = right
                 pos += 1
 
-
             if not trigger:
                 break
         return src
 
+    def __parse_declaration(self,src:list[dict],global_scope=True) -> list[dict]:
+        position = 0
+       
+        token = None
+        while position < len(src):
+            token = src[position]
+            
+            
+            if (token["type"] == statements.STMT_TYPE ):
+                if len(src) > position + 2 and src[position +1]["type"] == token_types.TT_IDENTIFIER_TOKEN and src[position +2]["type"] == token_types.TT_EQUAL_TOKEN:
+                    token["type"] = statements.STMT_DECLARATION
+                    token["variable"] = src[position +1]
+                    token["global"]  = global_scope
+                
 
 
+            if ("body" in token.keys() and 
+                token["type"] not in [statements.STMT_STRUCT, statements.STMT_ASSEMBLY_BLOCK]):
 
-    def __create_ast(self):
-        pass
+                token["body"] = self.__parse_declaration(token["body"],False)
+                position += 1
+                continue
+                
+            
+            position += 1
+            pass
+        return src
+
+    def __generate_data_type(self,src:list[dict])->list[dict]:
+        position = 0
+        while position < len(src):
+            token = src[position]
+            """
+            if token["type"] == expressions.EXPR_CAST:
+                token["data_type"] = token["body"][0]
+            """
+            
+            if "condition" in token:
+                token["condition"] = self.__generate_data_type(token["condition"])
+            if "body" in token and token["type"] not in [statements.STMT_STRUCT, statements.STMT_ASSEMBLY_BLOCK]:
+                token["body"] = self.__generate_data_type(token["body"])
+                
+        
+
+    def __generate_ast(self,src:list[dict]) -> dict:
+        ast = {
+            "functions":{},
+            "global_variables":{},
+               }
+
+        position = 0
+        while position < len(src):
+            token       = src[position]
+            if token["type"] == token_types.TT_NEWLINE_TOKEN:
+                position += 1
+                continue
+            expr_type   = parser_conf.CONF_BINDING_NUMBER.get(token["type"],None)
+            
+            
+            position += 1
+
+        return ast
+        
+        
 

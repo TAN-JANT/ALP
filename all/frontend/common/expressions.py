@@ -1,3 +1,6 @@
+#Index access expressions
+EXPR_INDEX_ACCESS = "EXPR_INDEX_ACCESS"
+
 # Unary expressions
 EXPR_LOGICAL_NOT        = "EXPR_LOGICAL_NOT"      # !a
 EXPR_BITWISE_NOT        = "EXPR_BITWISE_NOT"      # ~a
@@ -50,6 +53,8 @@ EXPR_LOGIC_XOR_ASSIGN   = "EXPR_LOGIC_XOR_ASSIGN" # a ^= b
 EXPR_SHIFT_LEFT_ASSIGN  = "EXPR_SHIFT_LEFT_ASSIGN"# a <<= b
 EXPR_SHIFT_RIGHT_ASSIGN ="EXPR_SHIFT_RIGHT_ASSIGN"# a >>= b
 EXPR_LOGIC_OR_ASSIGN    = "EXPR_LOGIC_OR_ASSIGN"  # a ||= b
+# Casting expressions
+EXPR_CAST               = "EXPR_CAST"             # i8 (a)
 
 # Primary expressions
 EXPR_NUMBER             = "EXPR_NUMBER"           # 123, 3.14
@@ -59,5 +64,5 @@ EXPR_CALL               = "EXPR_CALL"             # foo()
 EXPR_MEMBER             = "EXPR_MEMBER"           # obj.field
 EXPR_ARRAY              = "EXPR_ARRAY"            # [1,2,3]
 EXPR_STRUCT             = "EXPR_STRUCT"           # struct instance
-EXPR_BUILT_IN_FUNC      = "EXPR_BUILT_IN_FUNC"    # @addr
+
 

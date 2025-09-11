@@ -80,7 +80,7 @@ class Lexer:
             "[": token_types.TT_LEFT_SQUARE_PAREN_TOKEN,
             "]": token_types.TT_RIGHT_SQUARE_PAREN_TOKEN,
             "~": token_types.TT_TILDE_TOKEN
-        }
+        } # (  2 + 3 ) * ( 3 + 5 )
 
         while True:
             if self.current_char is None:
