@@ -139,6 +139,7 @@ class Lexer:
                             "file": self.info["working_directory"]
                             + self.info["file_name"],
                             "value": self.source[start_pos + 3 : self.position],
+                            "data_type": {"value":"@ptr","subtype":[{"value":"i8","subtype":[]}]}
                         }
                     )
                     self.advance(3)
@@ -169,6 +170,7 @@ class Lexer:
                             "file": self.info["working_directory"]
                             + self.info["file_name"],
                             "value": self.source[start_pos + 3 : self.position],
+                            "data_type": {"value":"@ptr","subtype":[{"value":"i8","subtype":[]}]}
                         }
                     )
                     self.advance(3)
@@ -208,6 +210,7 @@ class Lexer:
                             "file": self.info["working_directory"]
                             + self.info["file_name"],
                             "value": self.source[start_pos : self.position],
+                            "data_type": {"value":"i32","subtype":[]}
                         }
                     )
                     continue
@@ -228,6 +231,7 @@ class Lexer:
                             "file": self.info["working_directory"]
                             + self.info["file_name"],
                             "value": self.source[start_pos : self.position],
+                            "data_type": {"value":"i32","subtype":[]}
                         }
                     )
                     continue
@@ -246,6 +250,7 @@ class Lexer:
                         "pos": start_pos,
                         "file": self.info["working_directory"] + self.info["file_name"],
                         "value": self.source[start_pos : self.position],
+                        "data_type": {"value":"i32","subtype":[]}
                     }
                 )
                 continue

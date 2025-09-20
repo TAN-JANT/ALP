@@ -71,7 +71,56 @@ CONF_BINDING_NUMBER = {
     STMT_SQUARE_PAREN               : (100,0 )   # a[b]                                 
     
 }
+CONF_KEYWORDS = {
+    "if",
+    "else",
+    "elif",
+    "do",
+    "while",
+    "for",
+    "return",
+    "break",
+    "continue",
+    "struct",
+    "func",
+    "const",
+    "true",
+    "false",
+    "import",
+}   
 
+CONF_TOKEN_GROUPS = {
+    "LOGIC_TOKENS" : [
+        TT_COMBINED_AND_TOKEN,
+        TT_COMBINED_LOGIC_OR_TOKEN,
+        TT_NOT_TOKEN,
+        TT_COMBINED_EQUAL_TOKEN,
+        TT_COMBINED_NOT_EQUAL_TOKEN,
+        TT_COMBINED_GREATER_EQUAL_TOKEN,
+        TT_COMBINED_LESS_EQUAL_TOKEN,
+        TT_GREATER_TOKEN ,
+        TT_LESS_TOKEN 
+    ],
+    "MATH_TOKENS":[
+        TT_SUB_TOKEN ,
+        TT_ADD_TOKEN,
+        TT_ASTERISK_TOKEN ,
+        TT_DIV_TOKEN,
+        TT_MOD_TOKEN ,
+        TT_COMBINED_INT_DIVISION_TOKEN,
+        TT_COMBINED_POW_TOKEN ,
+    ],
+    
+    "BITWISE_TOKENS":[
+        TT_TILDE_TOKEN  ,
+        TT_XOR_TOKEN  ,
+        TT_PIPE_TOKEN  ,
+        TT_AND_TOKEN,
+        ]
+    
+}
+
+"""
 CONF_ALLOWED_TYPES = {
 
     TT_NOT_TOKEN                    : (0  ,90 ), # !a
@@ -143,5 +192,5 @@ CONF_ALLOWED_TYPES = {
                                                                 "index_expr":[1]}  # a[b]                                 
     
 }
-
+"""
 

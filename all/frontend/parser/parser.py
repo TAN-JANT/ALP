@@ -1,9 +1,19 @@
 # type: ignore
+import token
+from turtle import position
 from ..common import expressions, statements, parser_conf 
 from ..common import token_types
 from . import errors
 from ..lexer.lexer import Lexer
 
+def  data_type_cmp(a,b):
+    if a["value"] != b["value"] and not (a["value"] in ["array","@ptr"] and b["value"] in ["array","@ptr"]):
+        return False
+    if len(a["subtype"]) != len(a["subtype"]):
+        return False
+    if len(a["subtype"]) == 0:
+        return True
+    return data_type_cmp(a["subtype"],b["subtype"])
 
 class Parser:
     def __init__(self):
@@ -26,7 +36,7 @@ class Parser:
         self.__separate_comments(self.parsed_data)
         self.parsed_data = self.__parse_dots(self.parsed_data.copy())
         self.parsed_data = self.__parse_bodies()[1]
-
+        return self.parsed_data
         self.parsed_data = self.__parse_types(self.parsed_data)
         # struct ayrıştırması kapalı, gerekirse aç
         self.parsed_data = self.__parse_struct(self.parsed_data.copy())
@@ -41,8 +51,8 @@ class Parser:
         )
         self.parsed_data = self.__combine_operators(self.parsed_data.copy())
         self.parsed_data = self.__parse_declaration(self.parsed_data.copy())
+        
         self.parsed_data = self.__parse_expr(self.parsed_data.copy())
-        return self.parsed_data
 
     def __separate_comments(self, src: list[dict]):
         position = 0
@@ -119,73 +129,30 @@ class Parser:
 
         return [info, body]
 
-    def __parse_bodies(self, opened=False, position=0):
+    def __parse_bodies(self, src:list[dict], position=0, paren_stack=[]):
         body = []
-
-        while position < len(self.parsed_data):
-            token = self.parsed_data[position]
-
-            if token["type"] == token_types.TT_LEFT_PAREN_TOKEN:
-                opened = True
-                position += 1
-                position, sub_body = self.__parse_bodies(opened, position)
-                body.append(
-                    {
-                        "type": statements.STMT_ROUND_PAREN,
-                        "file": token["file"],
-                        "line": token["line"],
-                        "column": token["column"],
-                        "body": sub_body,
-                    }
-                )
-                continue
-
-            if token["type"] == token_types.TT_LEFT_SQUARE_PAREN_TOKEN:
-                opened = True
-                position += 1
-                position, sub_body = self.__parse_bodies(opened, position)
-                body.append(
-                    {
-                        "type": statements.STMT_SQUARE_PAREN,
-                        "file": token["file"],
-                        "line": token["line"],
-                        "column": token["column"],
-                        "body": sub_body,
-                    }
-                )
-                continue
-
-            if token["type"] == token_types.TT_LEFT_BRACE_TOKEN:
-                opened = True
-                position += 1
-                position, sub_body = self.__parse_bodies(opened, position)
-                body.append(
-                    {
-                        "type": statements.STMT_BRACE,
-                        "file": token["file"],
-                        "line": token["line"],
-                        "column": token["column"],
-                        "body": sub_body,
-                    }
-                )
-                continue
-
+        paren_types = {
+            token_types.TT_LEFT_PAREN_TOKEN:statements.STMT_ROUND_PAREN,
+            token_types.TT_LEFT_SQUARE_PAREN_TOKEN:statements.STMT_SQUARE_PAREN,
+            token_types.TT_LEFT_BRACE_TOKEN:statements.STMT_BRACE,
+        }
+        paren_match = {
+            token_types.TT_LEFT_PAREN_TOKEN:token_types.TT_RIGHT_PAREN_TOKEN,
+            token_types.TT_LEFT_SQUARE_PAREN_TOKEN:token_types.TT_RIGHT_SQUARE_PAREN_TOKEN,
+            token_types.TT_LEFT_BRACE_TOKEN:token_types.TT_RIGHT_BRACE_TOKEN,
+        }
+        while position < len(src):
+            token = self.src[position]
             if token["type"] in [
-                token_types.TT_RIGHT_PAREN_TOKEN,
-                token_types.TT_RIGHT_SQUARE_PAREN_TOKEN,
-                token_types.TT_RIGHT_BRACE_TOKEN,
-            ]:
-                if not opened:
-                    raise errors.Unmatched_Parenthesis_Error(
-                        token["line"], token["column"], token["file"]
-                    )
-                position += 1
-                break
+                token_types.TT_LEFT_PAREN_TOKEN,
+                token_types.TT_LEFT_SQUARE_PAREN_TOKEN,
+                token_types.TT_LEFT_BRACE_TOKEN
+                ]:
+                pass
 
-            position += 1
-            body.append(token)
+            # TODO CRITICAL: PARSE BODIES FUNCTION
+        
 
-        return [position, body]
  
     def __parse_struct(self, src: list[dict], global_scope=True):
         position = 0
@@ -706,16 +673,7 @@ class Parser:
                 position += 1
                 continue
 
-            if token["type"] == statements.STMT_BRACE:
-                if not in_func:
-                    raise errors.Unparseable_if_block_Error(
-                        token["line"], token["column"], token["file"]
-                    )
-                token["body"] = self.__parse_if_else_elif(
-                    token["body"].copy(), in_func=in_func
-                )
-                position += 1
-                continue
+            
             position += 1
 
         return src
@@ -1039,6 +997,7 @@ class Parser:
                             "line": left["line"],
                             "column": left["column"],
                             "file": token["file"],
+                            "data_type":{"value":"float","subtype":[]}
                         },
                     )
                 # dot access için identifier-identifier
@@ -1073,11 +1032,46 @@ class Parser:
             position += 1
         return body
 
-    def __parse_expr(self, src: list[dict]):
-        # İlk geçiş: binding değerlerini ata ve recursive parse yap
-        for token in src:
+    def __parse_declaration(self,src:list[dict],global_scope=True) -> list[dict]:
+        position = 0
+       
+        token = None
+        while position < len(src):
+            token = src[position]
+            
+            
+            if (token["type"] == statements.STMT_TYPE ):
+                if len(src) > position + 2 and src[position +1]["type"] == token_types.TT_IDENTIFIER_TOKEN and src[position +2]["type"] == token_types.TT_EQUAL_TOKEN:
+                    token["type"] = statements.STMT_DECLARATION
+                    token["variable"] = src[position +1]
+                    token["data_type"] = {"value":token["value"],"subtype":token["subtype"]}
+                    token["global"]  = global_scope
+                
+
+
+            if ("body" in token.keys() and 
+                token["type"] not in [statements.STMT_STRUCT, statements.STMT_ASSEMBLY_BLOCK]):
+
+                token["body"] = self.__parse_declaration(token["body"],False)
+                position += 1
+                continue
+                
+            
+            position += 1
+            pass
+        return src
+
+    def __parse_expr(self, src: list[dict],global_vars = {},local_vars = {}) -> list[dict]:
+        
+        # İlk geçiş: binding değerlerini ata ve recursive parse yap 
+        
+        pos = 0
+        previous_is_func = False
+        while pos < len(src):
+            token = src[pos]
             token["binding"] = [0, 0]
             _ = parser_conf.CONF_BINDING_NUMBER.get(token["type"], None)
+            
             if _ is not None:
                 token["binding"][0] = _[0]  # left binding
                 token["binding"][1] = _[1]  # right binding
@@ -1085,9 +1079,110 @@ class Parser:
                 token["binded_right"] = None
 
             if "condition" in token:
-                token["condition"] = self.__parse_expr(token["condition"])
+                token["condition"] = self.__parse_expr(token["condition"],global_vars=global_vars.copy(),local_vars=local_vars.copy())
+            
             if "body" in token and token["type"] not in [statements.STMT_STRUCT, statements.STMT_ASSEMBLY_BLOCK]:
-                token["body"] = self.__parse_expr(token["body"])
+                print("-----------")
+                print(token)
+                if "params" in token.keys():
+                    new_local_vars = local_vars.copy()
+                    for p in token["params"]:
+                        new_local_vars[p["param_name"]["value"]] = p["param_type"]
+                    token["body"] = self.__parse_expr(token["body"],global_vars=global_vars.copy(),local_vars=new_local_vars)
+                    
+                    pos += 1
+                    continue
+                print(token)
+                token["body"] = self.__parse_expr(token["body"],global_vars=global_vars.copy(),local_vars=local_vars.copy())
+                if token["type"] == statements.STMT_ROUND_PAREN:
+                    print(token)
+                    token["data_type"] = token["body"][0]["data_type"]
+                if previous_is_func:
+                    src[pos - 1]["binded_right"] = token
+                    previous_is_func = False
+            if token["type"] == statements.STMT_TYPE:
+                
+                token["data_type"] = {"value":token["value"],"subtype":token["subtype"]}
+            
+            if token["type"] in parser_conf.CONF_TOKEN_GROUPS["LOGIC_TOKENS"]:
+                token["data_type"] = {"value":"i32","subtype":[]}# i32 for bool
+            
+            if token["type"] in token_types.TT_IDENTIFIER_TOKEN:
+                if token["value"] in self.functions.keys():
+                    token["data_type"] = {"value":self.functions[token["value"]]["return_type"]["value"],"subtype":self.functions[token["value"]]["return_type"]["subtype"]}
+                    token["binded_right"] = None
+                    previous_is_func = True
+                elif token["value"] in ["true","false"]:
+                    token["data_type"] = {"value":"i32","subtype":[]}
+                elif token["value"] in parser_conf.CONF_KEYWORDS:
+                    pass
+                elif token["value"] in local_vars.keys():
+                    token["data_type"] = local_vars[token["value"]]
+                    
+                elif token["value"] in global_vars.keys():
+                    token["data_type"] = global_vars[token["value"]]
+                else:
+                    raise errors.Undefined_variable_Error(
+                        token["value"],
+                        token["line"], token["column"], token["file"]
+                    )
+            
+            if token["type"] == statements.STMT_DECLARATION:
+                if token["global"]:
+                    global_vars[token["variable"]["value"]] = token["data_type"]
+                else:
+                    local_vars[token["variable"]["value"]] = token["data_type"]
+            
+            if token["type"] == statements.STMT_DOT_ACCESS:
+                # Dot access type çözümlemesi
+                current_type = None
+                for i,part in enumerate(token["path"]):
+                    
+                    if i == 0:
+                        if part in local_vars.keys():
+                            current_type = local_vars[part]
+                        elif part in global_vars.keys():
+                            current_type = global_vars[part]
+                        else:
+                            raise errors.Undefined_variable_Error(
+                                part,
+                                token["line"], token["column"], token["file"]
+                            )
+                    else:
+                        if current_type is None:
+                            raise errors.Type_mismatch_Error(
+                                "struct",
+                                "None",
+                                token["line"], token["column"], token["file"]
+                            )
+                        if current_type["value"] not in self.structs.keys() and not i == len(token["path"]) -1:
+                            raise errors.Type_mismatch_Error(
+                                "struct",
+                                current_type["value"],
+                                token["line"], token["column"], token["file"]
+                            )
+                        if current_type["value"] not in self.structs.keys() and i == len(token["path"]) -1:
+                            break
+                        struct_def = self.structs[current_type["value"]]
+                        field_found = False
+                        for field in struct_def["fields"]:
+                            if field["variable"]["value"] == part:
+                                current_type = field["data_type"]
+                                field_found = True
+                                break
+                        if not field_found:
+                            raise errors.Undefined_field_Error(
+                                part,
+                                struct_def["name"],
+                                token["line"], token["column"], token["file"]
+                            )
+                token["data_type"] = current_type
+                
+                src[pos] = token
+            pos += 1
+                
+                
+            
 
         # Binding önceliğine göre bağlama
         while True:
@@ -1097,9 +1192,12 @@ class Parser:
             left    = None
             pos     = 0
             while True:
-                right = src[pos] if pos < len(src) else None 
+                right = src[pos] if pos < len(src) else None
+    
+                
 
                 if token is not None and token["binding"] == [0,0]:
+                    #print(right)
                     left_p = 0 if left is None else left["binding"][1]
                     right_p = 0 if right is None else right["binding"][0]
                     if left_p == 0 and right_p == 0:
@@ -1141,51 +1239,77 @@ class Parser:
 
             if not trigger:
                 break
+
+
+        for token in src:
+            token = self.__generate_data_type(token)
         return src
 
-    def __parse_declaration(self,src:list[dict],global_scope=True) -> list[dict]:
-        position = 0
-       
-        token = None
-        while position < len(src):
-            token = src[position]
-            
-            
-            if (token["type"] == statements.STMT_TYPE ):
-                if len(src) > position + 2 and src[position +1]["type"] == token_types.TT_IDENTIFIER_TOKEN and src[position +2]["type"] == token_types.TT_EQUAL_TOKEN:
-                    token["type"] = statements.STMT_DECLARATION
-                    token["variable"] = src[position +1]
-                    token["global"]  = global_scope
-                
-
-
-            if ("body" in token.keys() and 
-                token["type"] not in [statements.STMT_STRUCT, statements.STMT_ASSEMBLY_BLOCK]):
-
-                token["body"] = self.__parse_declaration(token["body"],False)
-                position += 1
-                continue
-                
-            
-            position += 1
-            pass
-        return src
-
-    def __generate_data_type(self,src:list[dict])->list[dict]:
-        position = 0
-        while position < len(src):
-            token = src[position]
-            """
-            if token["type"] == expressions.EXPR_CAST:
-                token["data_type"] = token["body"][0]
-            """
-            
-            if "condition" in token:
-                token["condition"] = self.__generate_data_type(token["condition"])
-            if "body" in token and token["type"] not in [statements.STMT_STRUCT, statements.STMT_ASSEMBLY_BLOCK]:
-                token["body"] = self.__generate_data_type(token["body"])
-                
+    def __generate_data_type(self,token:dict) -> dict:
         
+            
+        if token["type"] == token_types.TT_SUB_TOKEN:
+            l = token.get("binded_left",None)
+            r = token.get("binded_right",None)
+            if l is not None and "data_type" not in l.keys():
+                l = self.__generate_data_type(l)
+            if r is not None and "data_type" not in r.keys():
+                r = self.__generate_data_type(r)
+            if l is None and r is not None:
+                token["type"] = expressions.EXPR_NEGATE
+                token["data_type"] = r["data_type"]
+            elif l is None:
+                pass#raise errors.
+            return token
+            
+        
+        if token["type"] in parser_conf.CONF_TOKEN_GROUPS["MATH_TOKENS"]:
+            
+            l = token.get("binded_left",None)
+            r = token.get("binded_right",None)
+
+            if l is not None and "data_type" not in l.keys():
+                l = self.__generate_data_type(l)
+            
+            if r is not None and "data_type" not in r.keys():
+
+                r = self.__generate_data_type(r)
+            if (not l["data_type"]["value"] in ["u8","u16","u32","u64","i8","i16","i32","i64","float","double","@ptr"]):
+                raise errors.Type_mismatch_Error(
+                    str(["u8","u16","u32","u64","i8","i16","i32","i64","float","double","@ptr"]),
+                    str(l),
+                    token["line"], token["column"], token["file"]
+                )
+            
+            if (not r["data_type"]["value"] in ["u8","u16","u32","u64","i8","i16","i32","i64","float","double","@ptr"]):
+                raise errors.Type_mismatch_Error(
+                    str(["u8","u16","u32","u64","i8","i16","i32","i64","float","double","@ptr"]),
+                    str(r["data_type"]["value"]),
+                    token["line"], token["column"], token["file"]
+                )
+            
+            if (l["data_type"]["value"] in ["float","double"] and r["data_type"]["value"] in ["@ptr"]): 
+               raise errors.Type_mismatch_Error(
+                    str(l["data_type"]["value"]),
+                    str(r["data_type"]["value"]),
+                    token["line"], token["column"], token["file"]
+                ) 
+                         
+            if (r["data_type"]["value"] in ["float","double"] and l["data_type"]["value"] in ["@ptr"]):
+                raise errors.Type_mismatch_Error(
+                    str(r["data_type"]["value"]),
+                    str(l["data_type"]["value"]),
+                    token["line"], token["column"], token["file"]
+                )
+
+            _ = max(["u8","u16","u32","u64","i8","i16","i32","i64","float","double","@ptr"].index(l["data_type"]["value"]),
+                ["u8","u16","u32","u64","i8","i16","i32","i64","float","double","@ptr"].index(r["data_type"]["value"]))
+            token["data_type"] = {"value":["u8","u16","u32","u64","i8","i16","i32","i64","float","double","@ptr"][_],"subtype":[]}
+            
+
+            
+                
+        return token
 
     def __generate_ast(self,src:list[dict]) -> dict:
         ast = {
@@ -1205,6 +1329,5 @@ class Parser:
             position += 1
 
         return ast
-        
         
 

@@ -111,3 +111,37 @@ class Unparseable_NEGATE_error(Exception):
 
     def __str__(self):
         return f"Unparseable negative operator at File {self.file}, line {self.line}, column {self.column}"
+
+class Type_mismatch_Error(Exception):
+    def __init__(self, expected_type:str, got_type:str, line:int, column:int, file="<unknown>"):
+        self.expected_type = expected_type
+        self.got_type = got_type
+        self.line = line
+        self.column = column
+        self.file = file
+
+    def __str__(self):
+        return f"Type mismatch: Expected {self.expected_type}, got {self.got_type} at File {self.file}, line {self.line}, column {self.column}"
+
+class Undefined_variable_Error(Exception):
+    def __init__(self, var_name:str, line:int, column:int, file="<unknown>"):
+        self.var_name = var_name
+        self.line = line
+        self.column = column
+        self.file = file
+
+    def __str__(self):
+        return f"Undefined variable '{self.var_name}' at File {self.file}, line {self.line}, column {self.column}"
+    
+
+
+class Undefined_field_Error(Exception):
+    def __init__(self, field_name:str, struct_name:str, line:int, column:int, file="<unknown>"):
+        self.field_name = field_name
+        self.struct_name = struct_name
+        self.line = line
+        self.column = column
+        self.file = file
+
+    def __str__(self):
+        return f"Undefined field '{self.field_name}' in struct '{self.struct_name}' at File {self.file}, line {self.line}, column {self.column}"

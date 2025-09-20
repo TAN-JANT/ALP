@@ -1,3 +1,6 @@
-func i8 main(){
-    i8 s = 7 + 4 * 5
+struct x{
+    i8 y
 }
+
+x a = {8}
+(a.y,4)
